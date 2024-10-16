@@ -1,17 +1,36 @@
+import { useEffect, useState } from "react";
 
+const languages = [
+  { code: "en-us", name: "Inglês" },
+  { code: "es", name: "Espanhol" },
+  { code: "fr", name: "Francês" },
+  { code: "de", name: "Alemão" },
+  { code: "it", name: "Italiano" },
+  { code: "pt-br", name: "Português" },
+];
 
 function App() {
-  const languages = [
-    { code: "en-us", name: "Inglês" },
-    { code: "es", name: "Espanhol" },
-    { code: "fr", name: "Francês" },
-    { code: "de", name: "Alemão" },
-    { code: "it", name: "Italiano" },
-    { code: "pt-br", name: "Português" },
-  ];
+  const [linguaOrigem, setLinguaOrigem] = useState(languages[0].code);
+  const [linguaDestino, setLinguaDestino] = useState(languages[5].code);
 
-  let isLoading = false
-  let error = ""
+  const [textoOrigem, setTextoOrigem] = useState("");
+  const [textoDestino, setTextoDestino] = useState("");
+
+  useEffect(() => {
+    async function traduzirTexto() {
+      const response = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textoOrigem)}&langpair=${linguaOrigem}|${linguaDestino}`
+      );
+      const data = await response.json();
+
+      setLinguaDestino(data.responseData.translatedText);
+    }
+
+    traduzirTexto();
+  }, [textoOrigem, linguaOrigem, linguaDestino, setLinguaDestino]);
+
+  let isLoading = false;
+  let error = "";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -26,13 +45,18 @@ function App() {
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <select
               className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer"
-              value="en-us"
+              value={linguaOrigem}
+              onChange={(event) => setLinguaOrigem(event.target.value)}
             >
-              <option value="pt-br">Português</option>
+              <option value="de">Alemão</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
               <option value="en-us">Inglês</option>
+              <option value="it">Italiano</option>
+              <option value="pt-br">Português</option>
             </select>
 
-            <button className="p-2 rounded-full hover:bg-gray-100 outline-none">
+            <button className="p-2 rounded-full hover:bg-red-100 outline-none">
               <svg
                 className="w-5 h-5 text-headerColor"
                 fill="none"
@@ -51,10 +75,15 @@ function App() {
 
             <select
               className="text-sm text-textColor bg-transparent border-none focus:outline-none cursor-pointer"
-              value="pt-br"
+              value={linguaDestino}
+              onChange={(event) => setLinguaDestino(event.target.value)}
             >
-              <option value="pt-br">Português</option>
+              <option value="de">Alemão</option>
+              <option value="es">Espanhol</option>
+              <option value="fr">Francês</option>
               <option value="en-us">Inglês</option>
+              <option value="it">Italiano</option>
+              <option value="pt-br">Português</option>
             </select>
           </div>
 
@@ -62,7 +91,9 @@ function App() {
             <div className="p-4">
               <textarea
                 className="w-full h-40 text-lg text-textColor bg-transparent resize-none border-none outline-none"
-                placeholder="Digite seu texto..."                
+                placeholder="Digite seu texto..."
+                value={textoOrigem}
+                onChange={(event) => setTextoOrigem(event.target.value)}
               ></textarea>
             </div>
 
@@ -72,7 +103,9 @@ function App() {
                   <div className="animate-spin rounded-full h-8 w-8 border-blue-500 border-t-2"></div>
                 </div>
               ) : (
-                <p className="text-lg text-textColor">Colocar aqui o texto traduzido</p>
+                <p className="text-lg text-textColor">
+                  {textoDestino}
+                </p>
               )}
             </div>
           </div>
