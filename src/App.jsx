@@ -1,36 +1,41 @@
 import { useEffect, useState } from "react";
 
-const languages = [
-  { code: "en-us", name: "Inglês" },
-  { code: "es", name: "Espanhol" },
-  { code: "fr", name: "Francês" },
-  { code: "de", name: "Alemão" },
-  { code: "it", name: "Italiano" },
-  { code: "pt-br", name: "Português" },
-];
-
 function App() {
-  const [linguaOrigem, setLinguaOrigem] = useState(languages[0].code);
-  const [linguaDestino, setLinguaDestino] = useState(languages[5].code);
+  const [linguaOrigem, setLinguaOrigem] = useState("pt-br");
+  const [linguaDestino, setLinguaDestino] = useState("en-us");
 
   const [textoOrigem, setTextoOrigem] = useState("");
   const [textoDestino, setTextoDestino] = useState("");
 
+  const [isLoading, setIsLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
   useEffect(() => {
     async function traduzirTexto() {
-      const response = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textoOrigem)}&langpair=${linguaOrigem}|${linguaDestino}`
-      );
-      const data = await response.json();
-
-      setLinguaDestino(data.responseData.translatedText);
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(textoOrigem)}&langpair=${linguaOrigem}|${linguaDestino}`
+        );
+        const data = await response.json();
+        setTextoDestino(data.responseData.translatedText);
+      } catch (err) {
+        setError(err.message)
+      } 
+        setIsLoading(false);
+      
     }
 
     traduzirTexto();
-  }, [textoOrigem, linguaOrigem, linguaDestino, setLinguaDestino]);
+  }, [textoOrigem, linguaOrigem, linguaDestino, setTextoDestino]);
 
-  let isLoading = false;
-  let error = "";
+  function mudar() {
+    setLinguaOrigem(linguaDestino);
+    setLinguaDestino(linguaOrigem);
+    setTextoOrigem(textoDestino);
+    setTextoDestino(textoOrigem);
+  }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -56,7 +61,10 @@ function App() {
               <option value="pt-br">Português</option>
             </select>
 
-            <button className="p-2 rounded-full hover:bg-red-100 outline-none">
+            <button
+              className="p-2 rounded-full hover:bg-red-100 outline-none"
+              onClick={mudar}
+            >
               <svg
                 className="w-5 h-5 text-headerColor"
                 fill="none"
@@ -103,14 +111,12 @@ function App() {
                   <div className="animate-spin rounded-full h-8 w-8 border-blue-500 border-t-2"></div>
                 </div>
               ) : (
-                <p className="text-lg text-textColor">
-                  {textoDestino}
-                </p>
+                <p className="text-lg text-textColor">{textoDestino}</p>
               )}
             </div>
           </div>
 
-          {error && (
+          { error && (
             <div className="p-4 bg-red-100 border-t border-red-400 text-red-700">
               {error}
             </div>
